@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name w_conn_screw)(type KiCad)(uri ${KIPRJMOD}/lib_tp.pretty/w_conn_screw.pretty)(options "")(descr ""))
+)
