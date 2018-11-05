@@ -1,5 +1,5 @@
 (sym_lib_table
   (lib (name ESP32-wroom)(type Legacy)(uri ${KIPRJMOD}/lib_sch/ESP32-wroom.lib)(options "")(descr ""))
-  (lib (name Level_Shifter_4x)(type Legacy)(uri C:/projects/git-repos/woodbeamlamp/kicad/lib_sch/Level_Shifter_4x.lib)(options "")(descr ""))
-  (lib (name BMP280)(type Legacy)(uri C:/projects/git-repos/woodbeamlamp/kicad/lib_sch/BMP280.lib)(options "")(descr ""))
+  (lib (name Level_Shifter_4x)(type Legacy)(uri ${KIPRJMOD}/lib_sch/Level_Shifter_4x.lib)(options "")(descr ""))
+  (lib (name BMP280)(type Legacy)(uri ${KIPRJMOD}/lib_sch/BMP280.lib)(options "")(descr ""))
 )
