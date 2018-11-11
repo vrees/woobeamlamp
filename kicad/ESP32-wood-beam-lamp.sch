@@ -238,7 +238,7 @@ U 1 1 5B370F86
 P 3950 3200
 F 0 "J3" H 3950 3500 50  0000 R CNN
 F 1 "Serial-Prog" H 4150 3600 50  0000 R CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Horizontal" H 3950 3200 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical" H 3950 3200 50  0001 C CNN
 F 3 "~" H 3950 3200 50  0001 C CNN
 	1    3950 3200
 	-1   0    0    -1  
@@ -1264,7 +1264,7 @@ U 1 1 5BE95E72
 P 1150 5300
 F 0 "J7" H 1150 5600 50  0000 R CNN
 F 1 "AUX" H 1150 5700 50  0000 R CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Horizontal" H 1150 5300 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical" H 1150 5300 50  0001 C CNN
 F 3 "~" H 1150 5300 50  0001 C CNN
 	1    1150 5300
 	1    0    0    -1  
@@ -1391,4 +1391,5 @@ Wire Wire Line
 	2700 3600 2700 4900
 NoConn ~ 9100 4200
 NoConn ~ 9100 4300
+NoConn ~ 150  3200
 $EndSCHEMATC
