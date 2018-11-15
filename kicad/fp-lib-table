@@ -2,5 +2,5 @@
   (lib (name w_conn_screw)(type KiCad)(uri ${KIPRJMOD}/lib_fp.pretty/w_conn_screw.pretty)(options "")(descr ""))
   (lib (name w_conn_pc)(type KiCad)(uri ${KIPRJMOD}/lib_fp.pretty/w_conn_pc.pretty)(options "")(descr ""))
   (lib (name w_switch)(type KiCad)(uri ${KIPRJMOD}/lib_fp.pretty/w_switch.pretty)(options "")(descr ""))
-  (lib (name ESP32-footprints)(type KiCad)(uri ${KIPRJMOD}/lib_fp.ESP32-footprints-Lib.pretty)(options "")(descr ""))
+  (lib (name ESP32-footprints)(type KiCad)(uri ${KIPRJMOD}/lib_fp.pretty/ESP32-footprints-Lib.pretty)(options "")(descr ""))
 )
