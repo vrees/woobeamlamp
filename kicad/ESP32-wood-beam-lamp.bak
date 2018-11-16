@@ -492,7 +492,7 @@ L Regulator_Linear:TLV70233_SOT23-5 U1
 U 1 1 5B764364
 P 2550 1450
 F 0 "U1" H 2550 1792 50  0000 C CNN
-F 1 "TLV70233_SOT23-5" H 2550 1701 50  0000 C CNN
+F 1 "TLV70233" H 2550 1701 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23-5" H 2550 1775 50  0001 C CIN
 F 3 "http://www.ti.com/lit/ds/symlink/tlv712.pdf" H 2550 1450 50  0001 C CNN
 	1    2550 1450
@@ -630,17 +630,6 @@ F 3 "~" H 5900 4250 50  0001 C CNN
 	1    5700 4250
 	0    1    1    0   
 $EndComp
-$Comp
-L Connector:Screw_Terminal_01x06 J1
-U 1 1 5BEC5924
-P 1100 3150
-F 0 "J1" H 1020 2625 50  0000 C CNN
-F 1 "Screw_Terminal_01x05" H 1020 2716 50  0000 C CNN
-F 2 "Connector_Phoenix_MSTB:PhoenixContact_MSTBVA_2,5_6-G-5,08_1x06_P5.08mm_Vertical" H 1100 3150 50  0001 C CNN
-F 3 "~" H 1100 3150 50  0001 C CNN
-	1    1100 3150
-	-1   0    0    1   
-$EndComp
 Wire Wire Line
 	1300 3250 1300 3350
 Connection ~ 1300 3350
@@ -771,7 +760,6 @@ Wire Wire Line
 	1300 2950 1300 2850
 Wire Wire Line
 	1300 2850 1550 2850
-Connection ~ 1300 2850
 Connection ~ 3150 3400
 $Comp
 L power:GND #PWR011
@@ -846,7 +834,7 @@ L Connector:Screw_Terminal_01x06 J2
 U 1 1 5BF91993
 P 5000 1250
 F 0 "J2" H 4920 725 50  0000 C CNN
-F 1 "Screw_Terminal_01x05" H 4920 816 50  0000 C CNN
+F 1 "LED-out" H 4920 816 50  0000 C CNN
 F 2 "Connector_Phoenix_MSTB:PhoenixContact_MSTBVA_2,5_6-G-5,08_1x06_P5.08mm_Vertical" H 5000 1250 50  0001 C CNN
 F 3 "~" H 5000 1250 50  0001 C CNN
 	1    5000 1250
@@ -1047,8 +1035,6 @@ NoConn ~ 5000 6750
 NoConn ~ 5000 6850
 NoConn ~ 4400 6750
 NoConn ~ 4400 6850
-NoConn ~ 5200 1050
-NoConn ~ 5200 950 
 Wire Wire Line
 	8250 3900 8750 3900
 $Comp
@@ -1395,7 +1381,7 @@ U 1 1 5BEB6E38
 P 2100 6600
 F 0 "SW3" H 2100 6300 50  0000 C CNN
 F 1 "Rotary_Encoder_Switch" H 2100 6050 50  0000 C CNN
-F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC12E-Switch_Vertical_H20mm" H 1950 6760 50  0001 C CNN
+F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm" H 1950 6760 50  0001 C CNN
 F 3 "~" H 2100 6860 50  0001 C CNN
 	1    2100 6600
 	1    0    0    -1  
@@ -1538,4 +1524,42 @@ Wire Wire Line
 Connection ~ 1200 6100
 Wire Wire Line
 	1200 6100 1200 6150
+Connection ~ 1300 2850
+$Comp
+L Connector:Screw_Terminal_01x06 J1
+U 1 1 5BEC5924
+P 1100 3150
+F 0 "J1" H 1020 2625 50  0000 C CNN
+F 1 "Power" H 1020 2716 50  0000 C CNN
+F 2 "Connector_Phoenix_MSTB:PhoenixContact_MSTBVA_2,5_6-G-5,08_1x06_P5.08mm_Vertical" H 1100 3150 50  0001 C CNN
+F 3 "~" H 1100 3150 50  0001 C CNN
+	1    1100 3150
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5200 1050 5350 1050
+Wire Wire Line
+	5200 950  5350 950 
+$Comp
+L ESP32-wroom:Test_Point-Connector TP9
+U 1 1 5C0C035B
+P 5350 1050
+F 0 "TP9" V 5300 1250 50  0000 L CNN
+F 1 "Reserve-1" V 5300 1400 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5550 1050 50  0001 C CNN
+F 3 "~" H 5550 1050 50  0001 C CNN
+	1    5350 1050
+	0    1    1    0   
+$EndComp
+$Comp
+L ESP32-wroom:Test_Point-Connector TP8
+U 1 1 5C0C0AF1
+P 5350 950
+F 0 "TP8" V 5300 1150 50  0000 L CNN
+F 1 "Reserve-2" V 5300 1300 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5550 950 50  0001 C CNN
+F 3 "~" H 5550 950 50  0001 C CNN
+	1    5350 950 
+	0    1    1    0   
+$EndComp
 $EndSCHEMATC
