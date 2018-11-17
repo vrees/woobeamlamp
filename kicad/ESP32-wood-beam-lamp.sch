@@ -973,8 +973,6 @@ F 3 "~" H 5700 6850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5400 6550 5700 6550
-Wire Wire Line
 	4800 7200 5500 7200
 Wire Wire Line
 	5500 7200 5500 7000
@@ -1545,7 +1543,7 @@ L ESP32-wroom:Test_Point-Connector TP9
 U 1 1 5C0C035B
 P 5350 1050
 F 0 "TP9" V 5300 1250 50  0000 L CNN
-F 1 "Reserve-1" V 5300 1400 50  0000 L CNN
+F 1 "Res-1" V 5300 1400 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5550 1050 50  0001 C CNN
 F 3 "~" H 5550 1050 50  0001 C CNN
 	1    5350 1050
@@ -1556,7 +1554,7 @@ L ESP32-wroom:Test_Point-Connector TP8
 U 1 1 5C0C0AF1
 P 5350 950
 F 0 "TP8" V 5300 1150 50  0000 L CNN
-F 1 "Reserve-2" V 5300 1300 50  0000 L CNN
+F 1 "Res-2" V 5300 1300 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5550 950 50  0001 C CNN
 F 3 "~" H 5550 950 50  0001 C CNN
 	1    5350 950 
@@ -1576,4 +1574,32 @@ $EndComp
 Connection ~ 5700 3450
 Wire Wire Line
 	5700 3450 6200 3450
+$Comp
+L ESP32-wroom:Test_Point-Connector TP12
+U 1 1 5BF0810E
+P 5700 6500
+F 0 "TP12" H 5750 6650 50  0000 L CNN
+F 1 "Neo_oben" H 5550 6750 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5900 6500 50  0001 C CNN
+F 3 "~" H 5900 6500 50  0001 C CNN
+	1    5700 6500
+	1    0    0    -1  
+$EndComp
+$Comp
+L ESP32-wroom:Test_Point-Connector TP11
+U 1 1 5BF083A5
+P 5500 6500
+F 0 "TP11" H 5300 6600 50  0000 L CNN
+F 1 "Neo_unten" H 5350 6750 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 5700 6500 50  0001 C CNN
+F 3 "~" H 5700 6500 50  0001 C CNN
+	1    5500 6500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 6550 5700 6550
+Wire Wire Line
+	5700 6500 5700 6550
+Wire Wire Line
+	5500 6500 5500 6650
 $EndSCHEMATC
