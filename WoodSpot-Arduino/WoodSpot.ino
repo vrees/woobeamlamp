@@ -30,6 +30,8 @@ char* chosen      = "0";
 char* updInt      = "120";
 char* ledPin      = "2";
 char* timeZone    = "0.0";
+char* version     = "1.0.2";
+
 
 
 
@@ -40,7 +42,6 @@ void setup() {
   //IAS.preSetAutoUpdate(false);                            // automaticUpdate (true, false)
   //IAS.preSetAutoConfig(false);                            // automaticConfig (true, false)
   //IAS.preSetWifi("ssid","password");                      // preset Wifi
-  /* TIP! Delete Wifi cred. when you publish your App. */
 	
 
   IAS.addField(lbl, "textLine", 16);                        // These fields are added to the "App Settings" page in config mode and saved to eeprom. Updated values are returned to the original variable.
@@ -53,7 +54,7 @@ void setup() {
   IAS.addField(updInt, "Interval", 8, 'I');
   IAS.addField(ledPin, "ledPin", 2, 'P');
   IAS.addField(timeZone, "Timezone", 4, 'Z');
-  
+  IAS.addField(version, "Version", 10, 'T'); 
 
 
   // You can configure callback functions that can give feedback to the app user about the current state of the application.
@@ -151,6 +152,9 @@ void loop() {
     Serial.println(atoi(ledPin));  
     Serial.print(F(" Timezone\t| timeZone\t| "));
     Serial.println(atof(timeZone));
+
+    Serial.print(F(" Version\t| versione\t| "));
+    Serial.println(atof(version));
 
     Serial.println(F("*-------------------------------------------------------------------------*"));
     printEntry = millis();

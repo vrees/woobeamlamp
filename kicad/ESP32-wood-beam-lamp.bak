@@ -1581,7 +1581,7 @@ L Device:Rotary_Encoder_Switch SW3
 U 1 1 5BEB6E38
 P 2100 6950
 F 0 "SW3" H 2100 6650 50  0000 C CNN
-F 1 "Rotary_Encoder" H 2100 6400 50  0000 C CNN
+F 1 "Rotary_Encoder" H 2100 7200 50  0000 C CNN
 F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm" H 1950 7110 50  0001 C CNN
 F 3 "~" H 2100 7210 50  0001 C CNN
 	1    2100 6950
@@ -1604,4 +1604,14 @@ Wire Wire Line
 	2400 7050 2450 7050
 Wire Wire Line
 	2450 7050 2450 7400
+Wire Notes Line
+	600  6100 2500 6100
+Wire Notes Line
+	2500 6100 2500 7700
+Wire Notes Line
+	2500 7700 600  7700
+Wire Notes Line
+	600  7700 600  6100
+Text Notes 650  6200 0    50   ~ 0
+Rotary Encoder
 $EndSCHEMATC
