@@ -1,59 +1,106 @@
-#include <TTLED.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 
 // use first channel of 16 channels (started from zero)
-#define LEDC_CHANNEL_0     0
+#define LEDC_CHANNEL_0 0
 
 // use 13 bit precission for LEDC timer
-#define LEDC_TIMER_13_BIT  13
+#define LEDC_TIMER_13_BIT 13
 
 // use 5000 Hz as a LEDC base frequency
-#define LEDC_BASE_FREQ     5000
+#define LEDC_BASE_FREQ 5000
 
-#define LED_PIN            19
+#define LED_PIN 19
 
 // used in this example to print variables every 10 seconds
 unsigned long printEntry;
 unsigned long fadeMillis;
-int brightness = 0;    // how bright the LED is
-int fadeAmount = 5;    // how many points to fade the LED by
+int brightness = 0; // how bright the LED is
+int fadeAmount = 5; // how many points to fade the LED by
 
+
+const char *ssid = "Haus-Rees-Draytek";
+const char *password = "6422048768813046";
+const char *mqttServer = "192.168.178.84";
+const int mqttPort = 1883;
+const char *mqttUser = "pi-mqtt";
+const char *mqttPassword = "gs5lzvy8";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+uint32_t min(uint32_t valueA, uint32_t valueB)
+{
+  if (valueA < valueB)
+    return valueA;
+  else
+    return valueB;
+}
 
 // Arduino like analogWrite
 // value has to be between 0 and valueMax
-void ledcAnalogWrite(uint8_t channel, uint32_t value, uint32_t valueMax = 255) {
+void ledcAnalogWrite(uint8_t channel, uint32_t value, uint32_t valueMax = 255)
+{
   // calculate duty, 8191 from 2 ^ 13 - 1
   uint32_t duty = (8191 / valueMax) * min(value, valueMax);
-
+   Serial.println(duty);
   // write duty to LEDC
   ledcWrite(channel, duty);
 }
 
+void autoFade()
+{
+  if (millis() - fadeMillis > 30)
+  { // Serial.print the example variables every 10 seconds
+    // set the brightness on LEDC channel 0
+    ledcAnalogWrite(LEDC_CHANNEL_0, brightness);
 
+    // change the brightness for next time through the loop:
+    brightness = brightness + fadeAmount;
 
+    // reverse the direction of the fading at the ends of the fade:
+    if (brightness <= 0 || brightness >= 255)
+    {
+      fadeAmount = -fadeAmount;
+    }
 
-void setup(){
+    fadeMillis = millis();
+    Serial.print("working - brightness=");
+    Serial.println(brightness);
+  }
+}
+
+void setup()
+{
   Serial.begin(9600);
-  Serial.println("Satrt Fading!");
+  Serial.println("Start Fading!");
 
-    // Setup timer and attach timer to a led pin
+  // Setup timer and attach timer to a led pin
   ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
   ledcAttachPin(LED_PIN, LEDC_CHANNEL_0);
 }
 
-void loop(){
+void loop()
+{
 
-  if (millis() - fadeMillis > 30) {                // Serial.print the example variables every 10 seconds   
+  if (millis() - fadeMillis > 30)
+  { // Serial.print the example variables every 10 seconds
     // set the brightness on LEDC channel 0
+
+    Serial.print("working4 - brightness=");
+    Serial.println(brightness);
+
     ledcAnalogWrite(LEDC_CHANNEL_0, brightness);
-  
+
     // change the brightness for next time through the loop:
     brightness = brightness + fadeAmount;
-  
+
     // reverse the direction of the fading at the ends of the fade:
-    if (brightness <= 0 || brightness >= 255) {
+    if (brightness <= 0 || brightness >= 255)
+    {
       fadeAmount = -fadeAmount;
     }
-    
+
     fadeMillis = millis();
   }
 }
