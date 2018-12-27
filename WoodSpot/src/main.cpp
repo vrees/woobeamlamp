@@ -47,8 +47,8 @@ void ledcAnalogWrite(uint8_t channel, uint32_t value, uint32_t valueMax = 255)
 {
   // calculate duty, 8191 from 2 ^ 13 - 1
   uint32_t duty = (8191 / valueMax) * min(value, valueMax);
+  Serial.print("Duty=");
   Serial.println(duty);
-  // write duty to LEDC
   ledcWrite(channel, duty);
 }
 
@@ -112,32 +112,56 @@ void callback(char *topic, byte *message, unsigned int length)
   }
   Serial.println();
 
-  // Feel free to add more if statements to control more GPIOs with MQTT
-
-  // If a message is received on the topic esp32/output, you check if the message is either "on" or "off".
-  // Changes the output state according to the message
   if (String(topic) == topicBrightNess)
   {
+    int prozent = atoi(messageTemp.c_str());
     Serial.print("Changing output to ");
-    Serial.println(messageTemp);
+    Serial.print(prozent);
+    Serial.println("\%");
+    ledcAnalogWrite(LEDC_CHANNEL_0, prozent, 1000);
   }
 }
 
+void reconnect()
+{
+  while (!client.connected())
+  {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect("ESP32Client", mqttUser, mqttPassword))
+    {
+      Serial.println("connected");
+      // Subscribe
+      client.subscribe(topicBrightNess);
+    }
+    else
+    {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
 void setup()
 {
   Serial.begin(115200);
   setup_wifi();
-  // wifi_setup_scan();
 
   // Setup timer and attach timer to a led pin
   ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
   ledcAttachPin(LED_PIN, LEDC_CHANNEL_0);
 
-  client.setServer(mqttServer, 1883);
+  client.setServer(mqttServer, mqttPort);
   client.setCallback(callback);
 }
 
 void loop()
 {
-  autoFade();
+  if (!client.connected())
+  {
+    reconnect();
+  }
+  client.loop();
 }
