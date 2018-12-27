@@ -13,6 +13,8 @@
 
 #define LED_PIN 19
 
+#define ESSTISCH_MAX_BRIGHTNESS 1000
+
 // used in this example to print variables every 10 seconds
 unsigned long printEntry;
 unsigned long fadeMillis;
@@ -30,6 +32,7 @@ const int mqttPort = 1883;
 const char *mqttUser = "pi-mqtt";
 const char *mqttPassword = "gs5lzvy8";
 const char *topicBrightNess = "wohnung/wohnen/woodspot/brightness";
+const char *topicColor = "wohnung/wohnen/woodspot/color";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -116,10 +119,17 @@ void callback(char *topic, byte *message, unsigned int length)
   if (String(topic) == topicBrightNess)
   {
     int prozent = atoi(messageTemp.c_str());
-    Serial.print("Changing output to ");
+    Serial.print("Changing brightness output to ");
     Serial.print(prozent);
-    Serial.println("\%");
-    ledcAnalogWrite(LEDC_CHANNEL_0, prozent, 1000);
+    Serial.println(" \%\%");
+    ledcAnalogWrite(LEDC_CHANNEL_0, prozent, ESSTISCH_MAX_BRIGHTNESS);
+  }
+  else if (String(topic) == topicColor)
+  {
+    Serial.print("Changing RGB Color to ");
+    Serial.println(messageTemp);
+
+    setColor(strtol(messageTemp.c_str(), NULL, 16));
   }
 }
 
@@ -134,6 +144,7 @@ void reconnect()
       Serial.println("connected");
       // Subscribe
       client.subscribe(topicBrightNess);
+      client.subscribe(topicColor);
     }
     else
     {
@@ -168,5 +179,5 @@ void loop()
   }
   client.loop();
 
-  neopixel_loop();
+  // neopixel_loop();
 }
