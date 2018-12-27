@@ -1,5 +1,6 @@
 #include "WiFi.h"
 #include <PubSubClient.h>
+#include "vrees_neopixel.h"
 
 // use first channel of 16 channels (started from zero)
 #define LEDC_CHANNEL_0 0
@@ -155,6 +156,8 @@ void setup()
 
   client.setServer(mqttServer, mqttPort);
   client.setCallback(callback);
+
+  neopixel_setup();
 }
 
 void loop()
@@ -164,4 +167,6 @@ void loop()
     reconnect();
   }
   client.loop();
+
+  neopixel_loop();
 }
