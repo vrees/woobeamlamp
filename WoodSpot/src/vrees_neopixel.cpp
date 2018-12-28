@@ -39,10 +39,6 @@ void setColor(uint32_t color)
 
 void neopixel_setup()
 {
-    Serial.begin(115200);
-    while (!Serial)
-        ; // wait for serial attach
-
     Serial.println();
     Serial.println("Initializing neopixel_setup() ...");
     Serial.flush();
@@ -53,15 +49,15 @@ void neopixel_setup()
 
     direction = -1; // default to dim first
 
-    Serial.println();
-    Serial.println("Running...");
-
     // set our three original colors
     strip.SetPixelColor(0, currentColor);
     strip.SetPixelColor(1, currentColor);
     strip.SetPixelColor(2, currentColor);
 
     strip.Show();
+
+    Serial.println();
+    Serial.println("Setup Neopixel done!...");
 }
 
 void neopixel_loop()

@@ -1,6 +1,7 @@
 #include "WiFi.h"
 #include <PubSubClient.h>
 #include "vrees_neopixel.h"
+#include "rotary-encoder.h"
 
 // use first channel of 16 channels (started from zero)
 #define LEDC_CHANNEL_0 0
@@ -35,7 +36,7 @@ const char *topicBrightNess = "wohnung/wohnen/woodspot/brightness";
 const char *topicColor = "wohnung/wohnen/woodspot/color";
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient pubSubClient(espClient);
 
 uint32_t min(uint32_t valueA, uint32_t valueB)
 {
@@ -100,6 +101,7 @@ void setup_wifi()
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  delay(10);
 }
 
 void callback(char *topic, byte *message, unsigned int length)
@@ -135,21 +137,21 @@ void callback(char *topic, byte *message, unsigned int length)
 
 void reconnect()
 {
-  while (!client.connected())
+  while (!pubSubClient.connected())
   {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ESP32Client", mqttUser, mqttPassword))
+    if (pubSubClient.connect("ESP32Client", mqttUser, mqttPassword))
     {
       Serial.println("connected");
       // Subscribe
-      client.subscribe(topicBrightNess);
-      client.subscribe(topicColor);
+      pubSubClient.subscribe(topicBrightNess);
+      pubSubClient.subscribe(topicColor);
     }
     else
     {
       Serial.print("failed, rc=");
-      Serial.print(client.state());
+      Serial.print(pubSubClient.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
@@ -165,19 +167,20 @@ void setup()
   ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
   ledcAttachPin(LED_PIN, LEDC_CHANNEL_0);
 
-  client.setServer(mqttServer, mqttPort);
-  client.setCallback(callback);
+  pubSubClient.setServer(mqttServer, mqttPort);
+  pubSubClient.setCallback(callback);
 
   neopixel_setup();
+  rotary_encoder_setup();
 }
 
 void loop()
 {
-  if (!client.connected())
+  if (!pubSubClient.connected())
   {
     reconnect();
   }
-  client.loop();
+  pubSubClient.loop();
 
-  // neopixel_loop();
+  rotary_encoder_loop();
 }
