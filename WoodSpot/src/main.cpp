@@ -1,7 +1,7 @@
 #include "WiFi.h"
 #include <PubSubClient.h>
 #include "vrees_neopixel.h"
-#include "rotary-encoder.h"
+#include "rotary_encoder.h"
 
 // use first channel of 16 channels (started from zero)
 #define LEDC_CHANNEL_0 0
@@ -14,7 +14,7 @@
 
 #define LED_PIN 19
 
-#define ESSTISCH_MAX_BRIGHTNESS 1000
+#define ESSTISCH_MAX_BRIGHTNESS 1024
 
 // used in this example to print variables every 10 seconds
 unsigned long printEntry;
@@ -51,34 +51,10 @@ uint32_t min(uint32_t valueA, uint32_t valueB)
 void ledcAnalogWrite(uint8_t channel, uint32_t value, uint32_t valueMax = 255)
 {
   // calculate duty, 8191 from 2 ^ 13 - 1
-  uint32_t duty = (8191 / valueMax) * min(value, valueMax);
+  uint32_t duty = (8192 / valueMax) * min(value, valueMax);
   Serial.print("Duty=");
   Serial.println(duty);
   ledcWrite(channel, duty);
-}
-
-void autoFade()
-{
-  if (millis() - fadeMillis > 30)
-  { // Serial.print the example variables every 10 seconds
-    // set the brightness on LEDC channel 0
-
-    Serial.print("working5 - brightness=");
-    Serial.println(brightness);
-
-    ledcAnalogWrite(LEDC_CHANNEL_0, brightness);
-
-    // change the brightness for next time through the loop:
-    brightness = brightness + fadeAmount;
-
-    // reverse the direction of the fading at the ends of the fade:
-    if (brightness <= 0 || brightness >= 255)
-    {
-      fadeAmount = -fadeAmount;
-    }
-
-    fadeMillis = millis();
-  }
 }
 
 void setup_wifi()

@@ -22,8 +22,7 @@ void rotary_onButtonClick()
 {
     //rotaryEncoder.reset();
     //rotaryEncoder.disable();
-    rotaryEncoder.setBoundaries(-test_limits, test_limits, false);
-    test_limits *= 2;
+    Serial.println("rotary_onButtonClick()");
 }
 
 void rotary_encoder_loop()
@@ -68,7 +67,7 @@ void rotary_encoder_setup()
     rotaryEncoder.begin();
     rotaryEncoder.setup([] { rotaryEncoder.readEncoder_ISR(); });
     //optionally we can set boundaries and if values should cycle or not
-    rotaryEncoder.setBoundaries(0, 1000, false); //minValue, maxValue, cycle values (when max go to min and vice versa)
+    rotaryEncoder.setBoundaries(0, 1000, true); //minValue, maxValue, cycle values (when max go to min and vice versa)
 
     rotaryEncoder.enable();
 
