@@ -37,11 +37,9 @@ void setColor(uint32_t color)
     strip.Show();
 }
 
-void neopixel_setup()
+void setup_neopixel()
 {
-    Serial.println();
-    Serial.println("Initializing neopixel_setup() ...");
-    Serial.flush();
+    Serial.println("\nsetup_neopixel:  ...");
 
     // this resets all the neopixels to an off state
     strip.Begin();
@@ -56,8 +54,7 @@ void neopixel_setup()
 
     strip.Show();
 
-    Serial.println();
-    Serial.println("Setup Neopixel done!...");
+    Serial.println("done!");
 }
 
 void neopixel_loop()

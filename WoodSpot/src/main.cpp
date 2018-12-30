@@ -15,6 +15,7 @@
 #define LED_PIN 19
 
 #define ESSTISCH_MAX_BRIGHTNESS 1024
+#define ESSTISCH_INIT_BRIGHTNESS 500
 
 int brightness = 500; // how bright the LED is
 
@@ -32,7 +33,7 @@ const char *topicBrightNess = "wohnung/wohnen/woodspot/brightness";
 const char *topicColor = "wohnung/wohnen/woodspot/color";
 
 WiFiClient espClient;
-PubSubClient pubSubClient(espClient);
+PubSubClient pubSubClient;
 
 uint32_t min(uint32_t valueA, uint32_t valueB)
 {
@@ -42,15 +43,14 @@ uint32_t min(uint32_t valueA, uint32_t valueB)
     return valueB;
 }
 
-// Arduino like analogWrite
 // value has to be between 0 and valueMax
-void ledcAnalogWrite(uint8_t channel, uint32_t value, uint32_t valueMax = 255)
+void writePwmBrightness(uint32_t value)
 {
   // calculate duty, 8191 from 2 ^ 13 - 1
-  uint32_t duty = (8192 / valueMax) * min(value, valueMax);
+  uint32_t duty = (8192 / ESSTISCH_MAX_BRIGHTNESS) * min(value, ESSTISCH_MAX_BRIGHTNESS);
   Serial.print("Duty=");
   Serial.println(duty);
-  ledcWrite(channel, duty);
+  ledcWrite(LEDC_CHANNEL_0, duty);
 }
 
 void setup_wifi()
@@ -58,7 +58,8 @@ void setup_wifi()
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
-  Serial.print("Connecting to ");
+
+  Serial.print("setup_wifi: Connecting to ");
   Serial.println(ssid);
 
   WiFi.begin(ssid, password);
@@ -96,7 +97,7 @@ void callback(char *topic, byte *message, unsigned int length)
     Serial.print("Changing brightness output to ");
     Serial.print(brightness);
     Serial.println(" \%\%");
-    ledcAnalogWrite(LEDC_CHANNEL_0, brightness, ESSTISCH_MAX_BRIGHTNESS);
+    writePwmBrightness(brightness);
   }
   else if (String(topic) == topicColor)
   {
@@ -107,27 +108,40 @@ void callback(char *topic, byte *message, unsigned int length)
   }
 }
 
-void reconnect()
+boolean mqtt_connect()
 {
-  while (!pubSubClient.connected())
+  boolean is_connected = true;
+
+  if (!pubSubClient.connected())
   {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
     if (pubSubClient.connect("ESP32Client", mqttUser, mqttPassword))
     {
       Serial.println("connected");
-      // Subscribe
-      pubSubClient.subscribe(topicBrightNess);
-      pubSubClient.subscribe(topicColor);
     }
     else
     {
       Serial.print("failed, rc=");
-      Serial.print(pubSubClient.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
+      Serial.println(pubSubClient.state());
+      is_connected = false;
     }
+  }
+  return is_connected;
+}
+
+void subscribeTopics()
+{
+  pubSubClient.subscribe(topicBrightNess);
+  pubSubClient.subscribe(topicColor);
+}
+
+void reconnect()
+{
+  while (!pubSubClient.connected())
+  {
+    if (mqtt_connect())
+      subscribeTopics();
   }
 }
 
@@ -144,23 +158,39 @@ void changeBrightness(int delta)
     brightness = 0;
   }
 
+  writePwmBrightness(brightness);
   pubSubClient.publish(topicBrightNess, String(brightness).c_str());
+}
+
+void setup_mqtt()
+{
+  Serial.println("\nsetup_mqtt: ...");
+  pubSubClient.setClient(espClient);
+  pubSubClient.setServer(mqttServer, mqttPort);
+  pubSubClient.setCallback(callback);
+
+  boolean is_connected = mqtt_connect();
+  pubSubClient.publish(topicBrightNess, String(brightness).c_str());
+  Serial.print("setup_mqtt: Connected=");
+  Serial.println(is_connected);
 }
 
 void setup()
 {
   Serial.begin(115200);
-  setup_wifi();
 
   // Setup timer and attach timer to a led pin
   ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
   ledcAttachPin(LED_PIN, LEDC_CHANNEL_0);
+  brightness = ESSTISCH_INIT_BRIGHTNESS;
+  changeBrightness(0);
 
-  pubSubClient.setServer(mqttServer, mqttPort);
-  pubSubClient.setCallback(callback);
+  setup_wifi();
+  setup_mqtt();
 
-  neopixel_setup();
-  rotary_encoder_setup();
+  setup_neopixel();
+  setup_rotary_encoder();
+  subscribeTopics();
 }
 
 void loop()

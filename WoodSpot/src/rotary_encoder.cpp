@@ -62,8 +62,9 @@ void rotary_encoder_loop()
     }
 }
 
-void rotary_encoder_setup()
+void setup_rotary_encoder()
 {
+    Serial.println("\nsetup_rotary_encoder ...");
     //we must initialize rorary encoder
     rotaryEncoder.begin();
     rotaryEncoder.setup([] { rotaryEncoder.readEncoder_ISR(); });
@@ -72,5 +73,5 @@ void rotary_encoder_setup()
 
     rotaryEncoder.enable();
 
-    Serial.println("Setup Rotary Encoder done!: ");
+    Serial.println("done!");
 }
