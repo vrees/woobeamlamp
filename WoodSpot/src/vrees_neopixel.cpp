@@ -13,11 +13,7 @@
 const uint16_t PixelCount = 4; // this example assumes 3 pixels, making it smaller will cause a failure
 const uint8_t PixelPin = 13;   // make sure to set this to the correct pin, ignored for Esp8266
 
-#define colorSaturation 255 // saturation of color constants
-// RgbColor red(colorSaturation, 0, 0);
-// RgbColor green(0, colorSaturation, 0);
-// RgbColor blue(0, 0, colorSaturation);
-HtmlColor currentColor(0xff00);
+HtmlColor currentColor(0x000000);
 
 // Make sure to provide the correct color order feature
 // for your NeoPixels
@@ -46,12 +42,7 @@ void setup_neopixel()
     strip.Show();
 
     direction = -1; // default to dim first
-
-    // set our three original colors
-    strip.SetPixelColor(0, currentColor);
-    strip.SetPixelColor(1, currentColor);
-    strip.SetPixelColor(2, currentColor);
-
+    strip.ClearTo(currentColor);
     strip.Show();
 
     Serial.println("done!");

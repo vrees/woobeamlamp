@@ -48,7 +48,11 @@ void writePwmBrightness(uint32_t value)
 {
   // calculate duty, 8191 from 2 ^ 13 - 1
   uint32_t duty = (8192 / ESSTISCH_MAX_BRIGHTNESS) * min(value, ESSTISCH_MAX_BRIGHTNESS);
-  Serial.print("Duty=");
+
+  Serial.print("Changing brightness output to ");
+  Serial.print(value);
+  Serial.print(" \%\%");
+  Serial.print(", duty=");
   Serial.println(duty);
   ledcWrite(LEDC_CHANNEL_0, duty);
 }
@@ -94,9 +98,6 @@ void callback(char *topic, byte *message, unsigned int length)
   if (String(topic) == topicBrightNess)
   {
     brightness = atoi(messageTemp.c_str());
-    Serial.print("Changing brightness output to ");
-    Serial.print(brightness);
-    Serial.println(" \%\%");
     writePwmBrightness(brightness);
   }
   else if (String(topic) == topicColor)
@@ -133,7 +134,7 @@ boolean mqtt_connect()
 void subscribeTopics()
 {
   pubSubClient.subscribe(topicBrightNess);
-  pubSubClient.subscribe(topicColor);
+  pubSubClient.subscribe(topicColor, 0);
 }
 
 void reconnect()
@@ -159,7 +160,7 @@ void changeBrightness(int delta)
   }
 
   writePwmBrightness(brightness);
-  pubSubClient.publish(topicBrightNess, String(brightness).c_str());
+  pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
 }
 
 void setup_mqtt()
@@ -170,8 +171,11 @@ void setup_mqtt()
   pubSubClient.setCallback(callback);
 
   boolean is_connected = mqtt_connect();
-  pubSubClient.publish(topicBrightNess, String(brightness).c_str());
-  Serial.print("setup_mqtt: Connected=");
+  pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
+  pubSubClient.publish(topicColor, String("000000").c_str(), true);
+
+  delay(2000);
+  Serial.print("setup_mqtt: Published default Brightness and color. Connected=");
   Serial.println(is_connected);
 }
 
