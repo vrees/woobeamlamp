@@ -16,11 +16,7 @@
 
 #define ESSTISCH_MAX_BRIGHTNESS 1024
 
-// used in this example to print variables every 10 seconds
-unsigned long printEntry;
-unsigned long fadeMillis;
-int brightness = 0; // how bright the LED is
-int fadeAmount = 5; // how many points to fade the LED by
+int brightness = 500; // how bright the LED is
 
 // const char *ssid = "HausRees-Draytek";
 // const char *password = "6422048768813046";
@@ -96,11 +92,11 @@ void callback(char *topic, byte *message, unsigned int length)
 
   if (String(topic) == topicBrightNess)
   {
-    int prozent = atoi(messageTemp.c_str());
+    brightness = atoi(messageTemp.c_str());
     Serial.print("Changing brightness output to ");
-    Serial.print(prozent);
+    Serial.print(brightness);
     Serial.println(" \%\%");
-    ledcAnalogWrite(LEDC_CHANNEL_0, prozent, ESSTISCH_MAX_BRIGHTNESS);
+    ledcAnalogWrite(LEDC_CHANNEL_0, brightness, ESSTISCH_MAX_BRIGHTNESS);
   }
   else if (String(topic) == topicColor)
   {
@@ -134,6 +130,23 @@ void reconnect()
     }
   }
 }
+
+void changeBrightness(int delta)
+{
+  brightness += delta;
+
+  if (brightness >= ESSTISCH_MAX_BRIGHTNESS)
+  {
+    brightness = ESSTISCH_MAX_BRIGHTNESS;
+  }
+  if (brightness < 0)
+  {
+    brightness = 0;
+  }
+
+  pubSubClient.publish(topicBrightNess, String(brightness).c_str());
+}
+
 void setup()
 {
   Serial.begin(115200);
