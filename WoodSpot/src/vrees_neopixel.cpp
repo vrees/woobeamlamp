@@ -10,8 +10,8 @@
 
 #include <NeoPixelBrightnessBus.h> // instead of NeoPixelBus.h
 
-const uint16_t PixelCount = 4; // this example assumes 3 pixels, making it smaller will cause a failure
-const uint8_t PixelPin = 13;   // make sure to set this to the correct pin, ignored for Esp8266
+const uint16_t PixelCount = 61; // this example assumes 3 pixels, making it smaller will cause a failure
+const uint8_t PixelPin = 13;    // make sure to set this to the correct pin, ignored for Esp8266
 
 HtmlColor currentColor(0x000000);
 
