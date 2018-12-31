@@ -57,8 +57,7 @@ void rotary_encoder_loop()
 
     if (encoderDelta != 0)
     {
-        changeBrightness(delta);
-        Serial.println(" changeBrightness done");
+        changeBrightness(delta, true);
     }
 }
 

@@ -1,5 +1,6 @@
 #include "WiFi.h"
-#include <PubSubClient.h>
+#include "esp_system.h"
+#include "PubSubClient.h"
 #include "vrees_neopixel.h"
 #include "rotary_encoder.h"
 
@@ -34,6 +35,8 @@ const char *topicColor = "wohnung/wohnen/woodspot/color";
 
 WiFiClient espClient;
 PubSubClient pubSubClient;
+hw_timer_t *timer = NULL;
+volatile boolean publishBrightnessInNextLoop = false;
 
 uint32_t min(uint32_t valueA, uint32_t valueB)
 {
@@ -146,7 +149,22 @@ void reconnect()
   }
 }
 
-void changeBrightness(int delta)
+void IRAM_ATTR publishBrightness()
+{
+  publishBrightnessInNextLoop = true;
+}
+
+void startDelayTimer(int msec)
+{
+  Serial.println("Start delay timer for ISR publishBrightness");
+
+  timer = timerBegin(0, 80, true);                       //timer 0, div 80
+  timerAttachInterrupt(timer, &publishBrightness, true); //attach callback
+  timerAlarmWrite(timer, msec * 1000, false);            //set time in us
+  timerAlarmEnable(timer);
+}
+
+void changeBrightness(int delta, boolean delayMqttPublish = false)
 {
   brightness += delta;
 
@@ -160,7 +178,13 @@ void changeBrightness(int delta)
   }
 
   writePwmBrightness(brightness);
-  pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
+
+  if (delayMqttPublish)
+  {
+    startDelayTimer(1000);
+  }
+  else
+    pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
 }
 
 void setup_mqtt()
@@ -204,6 +228,13 @@ void loop()
     reconnect();
   }
   pubSubClient.loop();
+
+  if (publishBrightnessInNextLoop)
+  {
+    publishBrightnessInNextLoop = false;
+    pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
+    Serial.println("publish brightness done");
+  }
 
   rotary_encoder_loop();
 }
