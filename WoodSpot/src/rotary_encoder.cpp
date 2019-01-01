@@ -29,6 +29,7 @@ void rotary_onButtonClick()
     else
         steps = DEFAULT_STEP_SIZE;
 
+    delay(5); // verhindert prellen
     Serial.print("rotary_onButtonClick() - new steps=");
     Serial.println(steps);
 }
