@@ -36,6 +36,7 @@ const char *topicColor = "wohnung/wohnen/woodspot/color";
 WiFiClient espClient;
 PubSubClient pubSubClient;
 hw_timer_t *timer = NULL;
+uint32_t itColor = 0;
 volatile boolean publishBrightnessInNextLoop = false;
 
 uint32_t min(uint32_t valueA, uint32_t valueB)
@@ -221,6 +222,14 @@ void setup()
   subscribeTopics();
 }
 
+void color_loop()
+{
+  ++itColor;
+  setColor(itColor);
+  itColor = itColor & 0xFFFFFF;
+  Serial.println(itColor);
+}
+
 void loop()
 {
   if (!pubSubClient.connected())
@@ -233,8 +242,9 @@ void loop()
   {
     publishBrightnessInNextLoop = false;
     pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
-    Serial.println("publish brightness done");
   }
 
   rotary_encoder_loop();
+  color_loop();
+  delay(1);
 }
