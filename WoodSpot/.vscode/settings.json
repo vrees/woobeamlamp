@@ -4,7 +4,7 @@
         "PLATFORMIO_CALLER": "vscode"
     },
     "terminal.integrated.env.linux": {
-        "PATH": "/home/vrees/.platformio/penv/bin:/home/vrees/.platformio/penv:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games",
+        "PATH": "/home/vrees/.platformio/penv/bin:/home/vrees/.platformio/penv:/home/vrees/.nvm/versions/node/v10.16.3/bin:/home/vrees/work/tools/apache-maven-3.6.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/vrees/.platformio/penv/bin",
         "PLATFORMIO_CALLER": "vscode"
     }
 }
