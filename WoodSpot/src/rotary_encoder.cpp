@@ -24,14 +24,7 @@ int steps = DEFAULT_STEP_SIZE;
 
 void rotary_onButtonClick()
 {
-    if (steps == DEFAULT_STEP_SIZE)
-        steps = FINE_STEP_SIZE;
-    else
-        steps = DEFAULT_STEP_SIZE;
-
-    delay(5); // verhindert prellen
-    Serial.print("rotary_onButtonClick() - new steps=");
-    Serial.println(steps);
+    nextOperationMode();
 }
 
 void rotary_encoder_loop()
@@ -43,12 +36,15 @@ void rotary_encoder_loop()
         rotary_onButtonClick();
     }
 
-    //lets see if anything changed
+    // lets see if anything changed
     int16_t encoderDelta = rotaryEncoder.encoderChanged();
 
     //optionally we can ignore whenever there is no change
     if (encoderDelta == 0)
         return;
+
+    Serial.print("encoderDelta=");
+    Serial.println(encoderDelta);
 
     int delta = 0;
     if (encoderDelta > 0)

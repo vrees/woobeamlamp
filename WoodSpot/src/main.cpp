@@ -1,11 +1,17 @@
+#include "Arduino.h"
 #include "WiFi.h"
+#include "ESPmDNS.h"
+#include "WiFiUdp.h"
+#include "ArduinoOTA.h"
 #include "esp_system.h"
 #include "PubSubClient.h"
 #include "vrees_neopixel.h"
 #include "rotary_encoder.h"
+#include "main.h"
 
 // use first channel of 16 channels (started from zero)
-#define LEDC_CHANNEL_0 0
+#define LEDC_CHANNEL_LIGHT 1
+#define LEDC_CHANNEL_DECO 0
 
 // use 13 bit precission for LEDC timer
 #define LEDC_TIMER_13_BIT 13
@@ -13,12 +19,16 @@
 // use 5000 Hz as a LEDC base frequency
 #define LEDC_BASE_FREQ 5000
 
-#define LED_PIN 19
+#define LED_PIN_BELEUCHTUNG 19 // Esstischlampe, Beleuchtung nach unten
+#define LED_PIN_DECORATION 33  // Esstischlampe, Decoration strahlt nach oben
 
-#define ESSTISCH_MAX_BRIGHTNESS 1024
-#define ESSTISCH_INIT_BRIGHTNESS 500
+#define MAX_BRIGHTNESS 1024
+#define INIT_BRIGHTNESS_LIGHT 400
+#define INIT_BRIGHTNESS_DECO 100
 
-int brightness = 500; // how bright the LED is
+operation_mode_t operation_mode;
+int brightnessLight = INIT_BRIGHTNESS_LIGHT; // how bright the LED is
+int brightnessDeco = INIT_BRIGHTNESS_DECO;
 
 // const char *ssid = "HausRees-Draytek";
 // const char *password = "6422048768813046";
@@ -30,7 +40,8 @@ const char *mqttServer = "192.168.178.84";
 const int mqttPort = 1883;
 const char *mqttUser = "pi-mqtt";
 const char *mqttPassword = "gs5lzvy8";
-const char *topicBrightNess = "wohnung/wohnen/woodspot/brightness";
+const char *topicLight = "wohnung/wohnen/woodspot/brightness";
+const char *topicDecoration = "wohnung/wohnen/woodspot/decoration";
 const char *topicColor = "wohnung/wohnen/woodspot/color";
 
 WiFiClient espClient;
@@ -38,6 +49,34 @@ PubSubClient pubSubClient;
 hw_timer_t *timer = NULL;
 uint32_t itColor = 0;
 volatile boolean publishBrightnessInNextLoop = false;
+
+void nextOperationMode()
+{
+  switch (operation_mode)
+  {
+  case LIGHT:
+    operation_mode = DECORATION;
+    brightnessLight = 0;
+    brightnessDeco = INIT_BRIGHTNESS_DECO;
+    break;
+  case DECORATION:
+    operation_mode = BOTH;
+    brightnessLight = INIT_BRIGHTNESS_LIGHT;
+    brightnessDeco = INIT_BRIGHTNESS_DECO;
+    break;
+  default:
+    operation_mode = LIGHT;
+    brightnessLight = INIT_BRIGHTNESS_LIGHT;
+    brightnessDeco = 0;
+    break;
+  }
+
+  delay(5); // verhindert prellen
+  Serial.print("new operation_mode: ");
+  Serial.println(operation_mode);
+
+  changeBrightness(0, false);
+}
 
 uint32_t min(uint32_t valueA, uint32_t valueB)
 {
@@ -48,17 +87,19 @@ uint32_t min(uint32_t valueA, uint32_t valueB)
 }
 
 // value has to be between 0 and valueMax
-void writePwmBrightness(uint32_t value)
+void writePwmBrightness(uint32_t value, uint8_t channel)
 {
   // calculate duty, 8191 from 2 ^ 13 - 1
-  uint32_t duty = (8192 / ESSTISCH_MAX_BRIGHTNESS) * min(value, ESSTISCH_MAX_BRIGHTNESS);
+  uint32_t duty = (8192 / MAX_BRIGHTNESS) * min(value, MAX_BRIGHTNESS);
 
   Serial.print("Changing brightness output to ");
   Serial.print(value);
-  Serial.print(" \%\%");
   Serial.print(", duty=");
-  Serial.println(duty);
-  ledcWrite(LEDC_CHANNEL_0, duty);
+  Serial.print(duty);
+  Serial.print(", channel=");
+  Serial.println(channel);
+
+  ledcWrite(channel, duty);
 }
 
 void setup_wifi()
@@ -72,10 +113,11 @@ void setup_wifi()
 
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED)
+  while (WiFi.waitForConnectResult() != WL_CONNECTED)
   {
-    delay(500);
-    Serial.print(".");
+    Serial.println("Connection Failed! Rebooting...");
+    delay(5000);
+    ESP.restart();
   }
 
   Serial.println("");
@@ -83,6 +125,48 @@ void setup_wifi()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   delay(10);
+}
+
+void setup_ota()
+{
+  ArduinoOTA.setHostname("woodspot");
+
+  ArduinoOTA
+      .onStart([]() {
+        String type;
+        if (ArduinoOTA.getCommand() == U_FLASH)
+          type = "sketch";
+        else // U_SPIFFS
+          type = "filesystem";
+
+        // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+        Serial.println("Start updating " + type);
+      })
+      .onEnd([]() {
+        Serial.println("\nEnd");
+      })
+      .onProgress([](unsigned int progress, unsigned int total) {
+        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      })
+      .onError([](ota_error_t error) {
+        Serial.printf("Error[%u]: ", error);
+        if (error == OTA_AUTH_ERROR)
+          Serial.println("Auth Failed");
+        else if (error == OTA_BEGIN_ERROR)
+          Serial.println("Begin Failed");
+        else if (error == OTA_CONNECT_ERROR)
+          Serial.println("Connect Failed");
+        else if (error == OTA_RECEIVE_ERROR)
+          Serial.println("Receive Failed");
+        else if (error == OTA_END_ERROR)
+          Serial.println("End Failed");
+      });
+
+  ArduinoOTA.begin();
+
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void callback(char *topic, byte *message, unsigned int length)
@@ -99,10 +183,15 @@ void callback(char *topic, byte *message, unsigned int length)
   }
   Serial.println();
 
-  if (String(topic) == topicBrightNess)
+  if (String(topic) == topicLight)
   {
-    brightness = atoi(messageTemp.c_str());
-    writePwmBrightness(brightness);
+    brightnessLight = atoi(messageTemp.c_str());
+    writePwmBrightness(brightnessLight, LEDC_CHANNEL_LIGHT);
+  }
+  else if (String(topic) == topicDecoration)
+  {
+    brightnessDeco = atoi(messageTemp.c_str());
+    writePwmBrightness(brightnessDeco, LEDC_CHANNEL_DECO);
   }
   else if (String(topic) == topicColor)
   {
@@ -137,7 +226,8 @@ boolean mqtt_connect()
 
 void subscribeTopics()
 {
-  pubSubClient.subscribe(topicBrightNess);
+  pubSubClient.subscribe(topicLight);
+  pubSubClient.subscribe(topicDecoration);
   pubSubClient.subscribe(topicColor, 0);
 }
 
@@ -150,7 +240,7 @@ void reconnect()
   }
 }
 
-void IRAM_ATTR publishBrightness()
+void IRAM_ATTR publishBrightnessIsr()
 {
   publishBrightnessInNextLoop = true;
 }
@@ -159,33 +249,67 @@ void startDelayTimer(int msec)
 {
   Serial.println("Start delay timer for ISR publishBrightness");
 
-  timer = timerBegin(0, 80, true);                       //timer 0, div 80
-  timerAttachInterrupt(timer, &publishBrightness, true); //attach callback
-  timerAlarmWrite(timer, msec * 1000, false);            //set time in us
+  timer = timerBegin(0, 80, true);                          //timer 0, div 80
+  timerAttachInterrupt(timer, &publishBrightnessIsr, true); //attach callback
+  timerAlarmWrite(timer, msec * 1000, false);               //set time in us
   timerAlarmEnable(timer);
+}
+
+void publishBrightness()
+{
+  pubSubClient.publish(topicLight, String(brightnessLight).c_str(), true);
+  pubSubClient.publish(topicDecoration, String(brightnessDeco).c_str(), true);
+}
+
+void writeBrightness(int brightness, uint8_t channel)
+{
+  writePwmBrightness(brightness, channel);
+}
+
+int ensureBrightnessRange(int brightness, int delta)
+{
+  int newBrightness = brightness + delta;
+
+  if (newBrightness >= MAX_BRIGHTNESS)
+  {
+    newBrightness = MAX_BRIGHTNESS;
+  }
+  if (newBrightness < 0)
+  {
+    newBrightness = 0;
+  }
+
+  return newBrightness;
 }
 
 void changeBrightness(int delta, boolean delayMqttPublish = false)
 {
-  brightness += delta;
-
-  if (brightness >= ESSTISCH_MAX_BRIGHTNESS)
+  switch (operation_mode)
   {
-    brightness = ESSTISCH_MAX_BRIGHTNESS;
+  case LIGHT:
+    brightnessLight = ensureBrightnessRange(brightnessLight, delta);
+    writeBrightness(brightnessLight, LEDC_CHANNEL_LIGHT);
+    writeBrightness(brightnessDeco, LEDC_CHANNEL_DECO);
+    break;
+  case DECORATION:
+    writeBrightness(brightnessLight, LEDC_CHANNEL_LIGHT);
+    brightnessDeco = ensureBrightnessRange(brightnessDeco, delta);
+    writeBrightness(brightnessDeco, LEDC_CHANNEL_DECO);
+    break;
+  case BOTH:
+    brightnessLight = ensureBrightnessRange(brightnessLight, delta);
+    writeBrightness(brightnessLight, LEDC_CHANNEL_LIGHT);
+    brightnessDeco = ensureBrightnessRange(brightnessDeco, delta);
+    writeBrightness(brightnessDeco, LEDC_CHANNEL_DECO);
+    break;
   }
-  if (brightness < 0)
-  {
-    brightness = 0;
-  }
-
-  writePwmBrightness(brightness);
 
   if (delayMqttPublish)
   {
     startDelayTimer(1000);
   }
   else
-    pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
+    publishBrightness();
 }
 
 void setup_mqtt()
@@ -196,7 +320,8 @@ void setup_mqtt()
   pubSubClient.setCallback(callback);
 
   boolean is_connected = mqtt_connect();
-  pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
+  pubSubClient.publish(topicLight, String(brightnessLight).c_str(), true);
+  pubSubClient.publish(topicDecoration, String(brightnessDeco).c_str(), true);
   pubSubClient.publish(topicColor, String("000000").c_str(), true);
 
   delay(2000);
@@ -207,14 +332,22 @@ void setup_mqtt()
 void setup()
 {
   Serial.begin(115200);
+  Serial.println("Booting");
 
   // Setup timer and attach timer to a led pin
-  ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
-  ledcAttachPin(LED_PIN, LEDC_CHANNEL_0);
-  brightness = ESSTISCH_INIT_BRIGHTNESS;
-  changeBrightness(0);
+  ledcSetup(LEDC_CHANNEL_LIGHT, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
+  ledcAttachPin(LED_PIN_BELEUCHTUNG, LEDC_CHANNEL_LIGHT);
+
+  ledcSetup(LEDC_CHANNEL_DECO, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
+  ledcAttachPin(LED_PIN_DECORATION, LEDC_CHANNEL_DECO);
+
+  Serial.print("operation_mode: ");
+  Serial.println(operation_mode);
+
+  nextOperationMode(); // defaults to LIGHT
 
   setup_wifi();
+  setup_ota();
   setup_mqtt();
 
   setup_neopixel();
@@ -227,7 +360,7 @@ void color_loop()
   ++itColor;
   setColor(itColor);
   itColor = itColor & 0xFFFFFF;
-  Serial.println(itColor);
+  // Serial.println(itColor);
 }
 
 void loop()
@@ -241,10 +374,11 @@ void loop()
   if (publishBrightnessInNextLoop)
   {
     publishBrightnessInNextLoop = false;
-    pubSubClient.publish(topicBrightNess, String(brightness).c_str(), true);
+    publishBrightness();
   }
 
   rotary_encoder_loop();
   color_loop();
+  ArduinoOTA.handle();
   delay(1);
 }
