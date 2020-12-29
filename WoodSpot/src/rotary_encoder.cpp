@@ -15,8 +15,7 @@ GND - to microcontroler GND
 #define ROTARY_ENCODER_BUTTON_PIN 12
 #define ROTARY_ENCODER_VCC_PIN -1 /*put -1 of Rotary encoder Vcc is connected directly to 3,3V; else you can use declared output pin for powering rotary encoder */
 
-#define DEFAULT_STEP_SIZE 20
-#define FINE_STEP_SIZE 1
+#define DEFAULT_STEP_SIZE 10
 
 AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, ROTARY_ENCODER_VCC_PIN);
 

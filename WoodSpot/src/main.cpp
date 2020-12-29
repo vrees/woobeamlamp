@@ -24,7 +24,7 @@
 
 #define MAX_BRIGHTNESS 1024
 #define INIT_BRIGHTNESS_LIGHT 400
-#define INIT_BRIGHTNESS_DECO 100
+#define INIT_BRIGHTNESS_DECO 300
 
 operation_mode_t operation_mode;
 int brightnessLight = INIT_BRIGHTNESS_LIGHT; // how bright the LED is
@@ -268,7 +268,14 @@ void writeBrightness(int brightness, uint8_t channel)
 
 int ensureBrightnessRange(int brightness, int delta)
 {
-  int newBrightness = brightness + delta;
+  int effectiveDelta = delta;
+
+  if (brightness <= 100)
+    effectiveDelta = delta / 2;
+  else if (brightness <= 20)
+    effectiveDelta = delta / 5;
+
+  int newBrightness = brightness + effectiveDelta;
 
   if (newBrightness >= MAX_BRIGHTNESS)
   {
